@@ -1,10 +1,10 @@
 import csv
 import numpy as np
 
-FEATURETYPES = ['id', 'continuous', 'class', 'ignore', 'result_continuous', 'result_class']
+FEATURETYPES = ['continuous', 'class', 'ignore', 'result_continuous', 'result_class']
 
 class MachineLearningSet(object):
-	def __init__(self, csvFileName, features, classMap={}, norm={}):
+	def __init__(self, csvFileName, features, classDict={}, norm={}):
 		"""csvFileName: File containing a learning set
 		features: Dict in which the key is a collumn in the csv and the value is either:
 			'ignore': collumn is ignored and not put into the learning sets
@@ -12,21 +12,21 @@ class MachineLearningSet(object):
 			'continuous': collumn is a continuous value (such as price)
 			'result_class': collumn is used to calc cost of ml-model and is a class
 			'result_continuous': collumn is used to calc cost of ml-model and is continuous
-		classMap: Dict that specifies how classes are to be encoded:
+		classDict: Dict that specifies how classes are to be encoded:
 			keys are the names of individual features
 			values are lists that contain all possible values/classes for that feature
 			the index for that value/class in that list represents that class
-		norm is a dictionary that stores variance and mean of each feature:
+		norm is a dictionary that stores standard deviation and mean of each feature:
 			keys are the name of the individual features
 			values are the mean and standart devation
-		Note: If classMap or norm are not specified it will be calculated by this class.
-		It is adivsed to specify classMap and norm if the csv to be converted is a continuation of a previous set
+		Note: If classDict or norm are not specified it will be calculated by this class.
+		It is adivsed to specify classDict and norm if the csv to be converted is a continuation of a previous set
 		- such as a test set is to a training or crossvalidation set."""
 		self.csvFileName = csvFileName
 		self.features = {f:features[f] for f in features if features[f] != 'ignore'}
 		self.input_features = {f:features[f] for f in features if features[f] != 'ignore' and 'result' not in features[f]}
 		self.result_features = {f:features[f] for f in features if features[f] != 'ignore' and 'result' in features[f]}
-		self.classMap = classMap
+		self.classDict = classDict
 		self.norm = norm
 		self.input_set = None
 		self.result_set = None
@@ -71,24 +71,24 @@ class MachineLearningSet(object):
 							self.result_set[r, c] = float(row[feature])
 					elif self.features[feature] == 'class':
 						# map class to a number
-						if feature not in self.classMap.keys():
-							# add feature to classMap if not already seen
-							self.classMap[feature] = []
-						if row[feature] not in self.classMap[feature]:
-							# add class to feature in classMap if not already seen
-							self.classMap[feature].append(row[feature])
+						if feature not in self.classDict.keys():
+							# add feature to classDict if not already seen
+							self.classDict[feature] = []
+						if row[feature] not in self.classDict[feature]:
+							# add class to feature in classDict if not already seen
+							self.classDict[feature].append(row[feature])
 						c = list(self.input_features.keys()).index(feature) # index of current collumn
-						self.input_set[r, c] = self.classMap[feature].index(row[feature])
+						self.input_set[r, c] = self.classDict[feature].index(row[feature])
 					elif self.features[feature] == 'result_class':
 						# map class to a number
-						if feature not in self.classMap.keys():
-							# add feature to classMap if not already seen
-							self.classMap[feature] = []
-						if row[feature] not in self.classMap[feature]:
-							# add class to feature in classMap if not already seen
-							self.classMap[feature].append(row[feature])
+						if feature not in self.classDict.keys():
+							# add feature to classDict if not already seen
+							self.classDict[feature] = []
+						if row[feature] not in self.classDict[feature]:
+							# add class to feature in classDict if not already seen
+							self.classDict[feature].append(row[feature])
 						c = list(self.result_features.keys()).index(feature) # index of current collumn
-						self.result_set[r, c] = self.classMap[feature].index(row[feature])
+						self.result_set[r, c] = self.classDict[feature].index(row[feature])
 		self._normalize()
 		self._encode_classes()
 
@@ -100,7 +100,7 @@ class MachineLearningSet(object):
 				# c is the index of the current collumn
 				c = list(self.input_features.keys()).index(feature) + c_offset
 				# max_i is how many classes this feature has
-				classes_count = len(self.classMap[feature])
+				classes_count = len(self.classDict[feature])
 				# hot-encode the feature
 				encoded = self._hot_encode(self.input_set[:,c].astype(int, copy=False), max_i=classes_count)
 				# encoded.shape[1] is the number of collumns in the encoded array
@@ -114,7 +114,7 @@ class MachineLearningSet(object):
 		for feature in self.result_features:
 			if self.result_features[feature] == 'result_class':
 				c = list(self.result_features.keys()).index(feature) + c_offset
-				max_i = len(self.classMap[feature])
+				max_i = len(self.classDict[feature])
 				encoded = self._hot_encode(self.result_set[:,c].astype(int, copy=False), max_i=max_i)
 				c_offset += encoded.shape[1] - 1
 				self.result_set = np.hstack([ self.result_set[:,:c], encoded, self.result_set[:,(c+1):] ])
@@ -189,7 +189,7 @@ def main():
 	print('\nfeatures\n', mls.features)
 	print('\ninput features\n', mls.input_features)
 	print('\nresult features\n', mls.result_features)
-	print('\nclassMap\n', mls.classMap)
+	print('\nclassDict\n', mls.classDict)
 	print('\nnorm\n', mls.norm)
 
 
