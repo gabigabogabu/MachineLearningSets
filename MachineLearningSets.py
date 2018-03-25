@@ -1,27 +1,46 @@
+#!/usr/bin/python3
+
+"""Convert csv files into numpy arrays usable for machine learning applications"""
+
 import csv
 import numpy as np
+
+__author__ = "github.com/gaschu95"
+__license__ = "GPLv3"
+__version__ = "0.1"
 
 FEATURETYPES = ['continuous', 'class', 'ignore', 'result_continuous', 'result_class']
 
 class MachineLearningSet(object):
 	def __init__(self, csvFileName, features, classDict={}, norm={}):
-		"""csvFileName: File containing a learning set
-		features: Dict in which the key is a collumn in the csv and the value is either:
-			'ignore': collumn is ignored and not put into the learning sets
-			'class': collumn is a class (such as male/female/other)
-			'continuous': collumn is a continuous value (such as price)
-			'result_class': collumn is used to calc cost of ml-model and is a class
-			'result_continuous': collumn is used to calc cost of ml-model and is continuous
-		classDict: Dict that specifies how classes are to be encoded:
-			keys are the names of individual features
-			values are lists that contain all possible values/classes for that feature
-			the index for that value/class in that list represents that class
-		norm is a dictionary that stores standard deviation and mean of each feature:
-			keys are the name of the individual features
-			values are the mean and standart devation
+		"""
+		* csvFilename 
+			* CSV file in which data is stored
+		* features 
+			* A dict with the features' name as key and the type of feature as value
+			* The name has to be the same in the csv header.
+			* possible types of features are:
+				* 'continuous': this feature is on a continuous scale as opposed to classes. Will be represented in the input set
+				* 'class': this feature has discrete values. Will be represented in the input set
+				* 'result_continous': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result set
+				* 'result_class': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result class
+				* 'ignore': feature will be ignores and not represented in both the input and result set
+		* classDict (optional)
+			* A dict that specifies how classes are to be encoded 
+				* The keys are the names of individual features as named in the csv and features-dict
+				* The values are lists that contain all possible values/classes for that feature
+				* The index for that value/class in the list of that feature represents that class
+				* The numbers chosen to represent a class will be hot-encoded in the constructed sets
+		* norm (optional) (i need to find a better name for this)
+			* norm is a dictionary that stores standard deviation and mean of each feature:
+				* The keys are the name of the individual features such as in the dicts above
+				* The values are dicts with 'mean' and 'std' as keys that store the mean and standard deviation of that feature
+
 		Note: If classDict or norm are not specified it will be calculated by this class.
-		It is adivsed to specify classDict and norm if the csv to be converted is a continuation of a previous set
-		- such as a test set is to a training or crossvalidation set."""
+		If you are converting your first/only csv file for your ML problem you can leave it empty and the will be computed automatically.
+		However if you are converting a additional file for the same problem (such as a test set to a previous training set) you should give the 
+		first conversion's classDict and norm to the new MachineLearningSet-instance in order make sure the class representations and scales remain the same. 
+		If you don't do this it is very likely that you will get wonky results."""
 		self.csvFileName = csvFileName
 		self.features = {f:features[f] for f in features if features[f] != 'ignore'}
 		self.input_features = {f:features[f] for f in features if features[f] != 'ignore' and 'result' not in features[f]}
