@@ -11,9 +11,9 @@ Prepares data from csv files for machine learning applications
 	* possible types of features are:
 		* `'continuous'`: this feature is on a continuous scale as opposed to classes. Will be represented in the input set
 		* `'class'`: this feature has discrete values. Will be represented in the input set
-		* `'result_continous'`: contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result set
-		* `'result_class'`: contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result class
-		* `'ignore'`: feature will be ignores and not represented in both the input and result set
+		* `'target_continous'`: contiuous but a value that should be predicted by your ML algorithm. Will be represented in the target set
+		* `'target_class'`: contiuous but a value that should be predicted by your ML algorithm. Will be represented in the target class
+		* `'ignore'`: feature will be ignores and not represented in both the input and target set
 * `classDict` (optional)
 	* A dict that specifies how classes are to be encoded 
 		* The keys are the names of individual features as named in the csv and features-dict
@@ -27,24 +27,24 @@ Prepares data from csv files for machine learning applications
 
 Note: If classDict or norm are not specified it will be calculated by this class.
 If you are converting your first/only csv file for your ML problem you can leave it empty and the will be computed automatically.
-However if you are converting a additional file for the same problem (such as a test set to a previous training set) you should give the first conversion's classDict and norm to the new MachineLearningSet-instance in order make sure the class representations and scales remain the same. If you don't do this it is very likely that you will get wonky results.
+However if you are converting a additional file for the same problem (such as a test set to a previous training set) you should give the first conversion's classDict and norm to the new MachineLearningSet-instance in order make sure the class representations and scales remain the same. If you don't do this it is very likely that you will get wonky targets.
 
 # Useful class members
 
 * All the parameters given on construction will be saved
 * `input_features`: A dict with the same structure as the features parameter but filtered for features that serve as input
-* `result_features`: Similar to input_features but filtered for features that will be output from your ML algorithm
+* `target_features`: Similar to input_features but filtered for features that will be output from your ML algorithm
 * `classDict`: Same as parameter but updated if new classes/features found
 * `norm`: Same as parameter but updated if new features found
 * `input_set`: The fully encoded set ready to be fed into your ML algorithm
-* `result_set`: The fully encoded set ready to be compared to your ML alg's output
-* `input_vector_length` and `result_vector_length` useful to set the size of your input and output layer of ML alg
+* `target_set`: The fully encoded set ready to be compared to your ML alg's output
+* `input_vector_length` and `target_vector_length` useful to set the size of your input and output layer of ML alg
 
 # Example
 
 	print('\nTraining set\n')
 	train_features = {'PassengerId': 'ignore', 
-			'Survived': 'result_class', 
+			'Survived': 'target_class', 
 			'Pclass': 'class', 
 			'Name': 'ignore', 
 			'Sex': 'class', 
@@ -61,7 +61,7 @@ However if you are converting a additional file for the same problem (such as a 
 	print('\ninput set\n', mls.input_set)
 	print('\nfeatures\n', mls.features)
 	print('\ninput features\n', mls.input_features)
-	print('\nresult features\n', mls.result_features)
+	print('\ntarget features\n', mls.target_features)
 	print('\nclassDict\n', mls.classDict)
 	print('\nnorm\n', mls.norm)
 
@@ -84,7 +84,7 @@ However if you are converting a additional file for the same problem (such as a 
 	print('\ninput set\n', mls_test.input_set)
 	print('\nfeatures\n', mls_test.features)
 	print('\ninput features\n', mls_test.input_features)
-	print('\nresult features\n', mls_test.result_features)
+	print('\ntarget features\n', mls_test.target_features)
 	print('\nclassDict\n', mls_test.classDict)
 	print('\nnorm\n', mls_test.norm)
 
@@ -119,13 +119,13 @@ Will return:
 	[1.0 0.0 0.0 ... 0.0 1.0 0.0]]
 
 	features
-	{'Survived': 'result_class', 'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
+	{'Survived': 'target_class', 'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
 
 	input features
 	{'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
 
-	result features
-	{'Survived': 'result_class'}
+	target features
+	{'Survived': 'target_class'}
 
 	classDict
 	{'Survived': ['0', '1'], 'Pclass': ['3', '1', '2'], 'Sex': ['male', 'female'], 'Embarked': ['S', 'C', 'Q', '']}
@@ -151,7 +151,7 @@ Will return:
 	input features
 	{'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
 
-	result features
+	target features
 	{}
 
 	classDict

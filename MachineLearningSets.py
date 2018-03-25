@@ -9,7 +9,7 @@ __author__ = "github.com/gaschu95"
 __license__ = "GPLv3"
 __version__ = "0.1"
 
-FEATURETYPES = ['continuous', 'class', 'ignore', 'result_continuous', 'result_class']
+FEATURETYPES = ['continuous', 'class', 'ignore', 'target_continuous', 'target_class']
 
 class MachineLearningSet(object):
 	def __init__(self, csvFileName, features, classDict={}, norm={}):
@@ -22,9 +22,9 @@ class MachineLearningSet(object):
 			* possible types of features are:
 				* 'continuous': this feature is on a continuous scale as opposed to classes. Will be represented in the input set
 				* 'class': this feature has discrete values. Will be represented in the input set
-				* 'result_continous': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result set
-				* 'result_class': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the result class
-				* 'ignore': feature will be ignores and not represented in both the input and result set
+				* 'target_continous': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the target set
+				* 'target_class': contiuous but a value that should be predicted by your ML algorithm. Will be represented in the target class
+				* 'ignore': feature will be ignores and not represented in both the input and target set
 		* classDict (optional)
 			* A dict that specifies how classes are to be encoded 
 				* The keys are the names of individual features as named in the csv and features-dict
@@ -40,18 +40,18 @@ class MachineLearningSet(object):
 		If you are converting your first/only csv file for your ML problem you can leave it empty and the will be computed automatically.
 		However if you are converting a additional file for the same problem (such as a test set to a previous training set) you should give the 
 		first conversion's classDict and norm to the new MachineLearningSet-instance in order make sure the class representations and scales remain the same. 
-		If you don't do this it is very likely that you will get wonky results."""
+		If you don't do this it is very likely that you will get wonky targets."""
 		self.csvFileName = csvFileName
 		self.features = {f:features[f] for f in features if features[f] != 'ignore'}
-		self.input_features = {f:features[f] for f in features if features[f] != 'ignore' and 'result' not in features[f]}
-		self.result_features = {f:features[f] for f in features if features[f] != 'ignore' and 'result' in features[f]}
+		self.input_features = {f:features[f] for f in features if features[f] != 'ignore' and 'target' not in features[f]}
+		self.target_features = {f:features[f] for f in features if features[f] != 'ignore' and 'target' in features[f]}
 		self.classDict = classDict
 		self.norm = norm
 		self.input_set = None
-		self.result_set = None
+		self.target_set = None
 		self._construct_matrices()
 		self.input_vector_length = self.input_set.shape[1]
-		self.result_vector_length = self.result_set.shape[1]
+		self.target_vector_length = self.target_set.shape[1]
 
 	def _construct_matrices(self):
 		"""method that constructs the numpy arrays out of the data in csv file"""
@@ -61,7 +61,7 @@ class MachineLearningSet(object):
 
 		# build np arrays
 		self.input_set = np.ndarray((rowCount, len(self.input_features)), dtype=object)
-		self.result_set = np.ndarray((rowCount, len(self.result_features)), dtype=object)
+		self.target_set = np.ndarray((rowCount, len(self.target_features)), dtype=object)
 
 		# fill array
 		with open(self.csvFileName) as csvFile:
@@ -80,14 +80,14 @@ class MachineLearningSet(object):
 							self.input_set[r, c] = np.nan
 						else:
 							self.input_set[r, c] = float(row[feature])
-					elif self.features[feature] == 'result_continuous':
-						c = list(self.result_features.keys()).index(feature) # index of current collumn
+					elif self.features[feature] == 'target_continuous':
+						c = list(self.target_features.keys()).index(feature) # index of current collumn
 						# convert to float
 						if row[feature] == '':
 							# NaN if no value in that cell
-							self.result_set[r, c] = np.nan
+							self.target_set[r, c] = np.nan
 						else:
-							self.result_set[r, c] = float(row[feature])
+							self.target_set[r, c] = float(row[feature])
 					elif self.features[feature] == 'class':
 						# map class to a number
 						if feature not in self.classDict.keys():
@@ -98,7 +98,7 @@ class MachineLearningSet(object):
 							self.classDict[feature].append(row[feature])
 						c = list(self.input_features.keys()).index(feature) # index of current collumn
 						self.input_set[r, c] = self.classDict[feature].index(row[feature])
-					elif self.features[feature] == 'result_class':
+					elif self.features[feature] == 'target_class':
 						# map class to a number
 						if feature not in self.classDict.keys():
 							# add feature to classDict if not already seen
@@ -106,8 +106,8 @@ class MachineLearningSet(object):
 						if row[feature] not in self.classDict[feature]:
 							# add class to feature in classDict if not already seen
 							self.classDict[feature].append(row[feature])
-						c = list(self.result_features.keys()).index(feature) # index of current collumn
-						self.result_set[r, c] = self.classDict[feature].index(row[feature])
+						c = list(self.target_features.keys()).index(feature) # index of current collumn
+						self.target_set[r, c] = self.classDict[feature].index(row[feature])
 		self._normalize()
 		self._encode_classes()
 
@@ -128,15 +128,15 @@ class MachineLearningSet(object):
 				# replace unencoded collumn with encoded collumns
 				self.input_set = np.hstack([ self.input_set[:,:c], encoded, self.input_set[:,(c+1):] ])
 
-		# encode result classes, same as above but with self.result_set and self.result_features
+		# encode target classes, same as above but with self.target_set and self.target_features
 		c_offset = 0
-		for feature in self.result_features:
-			if self.result_features[feature] == 'result_class':
-				c = list(self.result_features.keys()).index(feature) + c_offset
+		for feature in self.target_features:
+			if self.target_features[feature] == 'target_class':
+				c = list(self.target_features.keys()).index(feature) + c_offset
 				max_i = len(self.classDict[feature])
-				encoded = self._hot_encode(self.result_set[:,c].astype(int, copy=False), max_i=max_i)
+				encoded = self._hot_encode(self.target_set[:,c].astype(int, copy=False), max_i=max_i)
 				c_offset += encoded.shape[1] - 1
-				self.result_set = np.hstack([ self.result_set[:,:c], encoded, self.result_set[:,(c+1):] ])
+				self.target_set = np.hstack([ self.target_set[:,:c], encoded, self.target_set[:,(c+1):] ])
 
 	def _normalize(self):
 		"""Normalize features that are continuous such that the normalized features have a mean of 0 and a standard of 1"""
@@ -154,15 +154,15 @@ class MachineLearningSet(object):
 				# normalize feature by subtracting mean and dividing by standard deviation
 				self.input_set[:,c] = (self.input_set[:,c] - self.norm[feature]['mean']) / self.norm[feature]['std']
 
-			# normalize result features. same as above but with self.result_features and self.result_set
-			elif feature in self.result_features and self.result_features[feature] == 'result_continuous':
-				c = list(self.result_features.keys()).index(feature)
+			# normalize target features. same as above but with self.target_features and self.target_set
+			elif feature in self.target_features and self.target_features[feature] == 'target_continuous':
+				c = list(self.target_features.keys()).index(feature)
 				if feature not in self.norm.keys():
 					self.norm[feature] = {
 							'mean': np.nanmean(self.input_set[:,c].astype(float, copy=False)),
 							'std': np.nanstd(self.input_set[:,c].astype(float, copy=False))
 					}
-				self.result_set[:,c] = (self.result_set[:,c] - self.norm[feature]['mean']) / self.norm[feature]['std']
+				self.target_set[:,c] = (self.target_set[:,c] - self.norm[feature]['mean']) / self.norm[feature]['std']
 
 	@staticmethod
 	def _get_csv_rowcount(csvFileName):
@@ -191,7 +191,7 @@ class MachineLearningSet(object):
 def main():
 	print('\nTraining set\n')
 	train_features = {'PassengerId': 'ignore', 
-			'Survived': 'result_class', 
+			'Survived': 'target_class', 
 			'Pclass': 'class', 
 			'Name': 'ignore', 
 			'Sex': 'class', 
@@ -205,10 +205,10 @@ def main():
 			}
 	mls = MachineLearningSet('train.csv', train_features)
 	print('\ninput set\n', mls.input_set)
-	# print('\nresult set\n', mls.result_set)
+	# print('\ntarget set\n', mls.target_set)
 	print('\nfeatures\n', mls.features)
 	print('\ninput features\n', mls.input_features)
-	print('\nresult features\n', mls.result_features)
+	print('\ntarget features\n', mls.target_features)
 	print('\nclassDict\n', mls.classDict)
 	print('\nnorm\n', mls.norm)
 
@@ -227,10 +227,10 @@ def main():
 			}
 	mls_test = MachineLearningSet('test.csv', test_features, mls.classDict, mls.norm)
 	print('\ninput set\n', mls_test.input_set)
-	# print('\nresult set\n', mls.result_set)
+	# print('\ntarget set\n', mls.target_set)
 	print('\nfeatures\n', mls_test.features)
 	print('\ninput features\n', mls_test.input_features)
-	print('\nresult features\n', mls_test.result_features)
+	print('\ntarget features\n', mls_test.target_features)
 	print('\nclassDict\n', mls_test.classDict)
 	print('\nnorm\n', mls_test.norm)
 
