@@ -42,7 +42,8 @@ However if you are converting a additional file for the same problem (such as a 
 
 # Example
 
-	features = {'PassengerId': 'ignore', 
+	print('\nTraining set\n')
+	train_features = {'PassengerId': 'ignore', 
 			'Survived': 'result_class', 
 			'Pclass': 'class', 
 			'Name': 'ignore', 
@@ -55,15 +56,37 @@ However if you are converting a additional file for the same problem (such as a 
 			'Cabin': 'ignore',
 			'Embarked': 'class',
 			}
-
-	mls = MachineLearningSet('train.csv', features)
-
+	mls = MachineLearningSet('train.csv', train_features)
+	
 	print('\ninput set\n', mls.input_set)
 	print('\nfeatures\n', mls.features)
 	print('\ninput features\n', mls.input_features)
 	print('\nresult features\n', mls.result_features)
-	print('\nclassMap\n', mls.classMap)
+	print('\nclassDict\n', mls.classDict)
 	print('\nnorm\n', mls.norm)
+
+	print('\nTest set\n')
+
+	test_features = {'PassengerId': 'ignore', 
+			'Pclass': 'class', 
+			'Name': 'ignore', 
+			'Sex': 'class', 
+			'Age': 'continuous',
+			'SibSp': 'continuous',
+			'Parch': 'continuous',
+			'Ticket': 'ignore',
+			'Fare': 'continuous',
+			'Cabin': 'ignore',
+			'Embarked': 'class',
+			}
+	mls_test = MachineLearningSet('test.csv', test_features, mls.classDict, mls.norm)
+
+	print('\ninput set\n', mls_test.input_set)
+	print('\nfeatures\n', mls_test.features)
+	print('\ninput features\n', mls_test.input_features)
+	print('\nresult features\n', mls_test.result_features)
+	print('\nclassDict\n', mls_test.classDict)
+	print('\nnorm\n', mls_test.norm)
 
 With `train.csv` being:
 
@@ -71,12 +94,20 @@ With `train.csv` being:
 	1,0,3,"Braund, Mr. Owen Harris",male,22,1,0,A/5 21171,7.25,,S
 	2,1,1,"Cumings, Mrs. John Bradley (Florence Briggs Thayer)",female,38,1,0,PC 17599,71.2833,C85,C
 	3,1,3,"Heikkinen, Miss. Laina",female,26,0,0,STON/O2. 3101282,7.925,,S
-	4,1,1,"Futrelle, Mrs. Jacques Heath (Lily May Peel)",female,35,1,0,113803,53.1,C123,S
-	5,0,3,"Allen, Mr. William Henry",male,35,0,0,373450,8.05,,S
-	6,0,3,"Moran, Mr. James",male,,0,0,330877,8.4583,,Q
+	...
+
+And `test.csv` being:
+
+	PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked
+	892,3,"Kelly, Mr. James",male,34.5,0,0,330911,7.8292,,Q
+	893,3,"Wilkes, Mrs. James (Ellen Needs)",female,47,1,0,363272,7,,S
+	894,2,"Myles, Mr. Thomas Francis",male,62,0,0,240276,9.6875,,Q
 	...
 
 Will return:
+
+	Training set
+
 
 	input set
 	[[1.0 0.0 0.0 ... 0.0 0.0 0.0]
@@ -88,7 +119,7 @@ Will return:
 	[1.0 0.0 0.0 ... 0.0 1.0 0.0]]
 
 	features
-	{'Survived': 'result_class', 'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch':'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
+	{'Survived': 'result_class', 'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
 
 	input features
 	{'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
@@ -96,7 +127,34 @@ Will return:
 	result features
 	{'Survived': 'result_class'}
 
-	classMap
+	classDict
+	{'Survived': ['0', '1'], 'Pclass': ['3', '1', '2'], 'Sex': ['male', 'female'], 'Embarked': ['S', 'C', 'Q', '']}
+
+	norm
+	{'Age': {'mean': 29.69911764705882, 'std': 14.516321150817316}, 'SibSp': {'mean': 0.5230078563411896, 'std': 1.1021244350892878}, 'Parch': {'mean': 0.38159371492704824, 'std': 0.8056047612452208}, 'Fare': {'mean': 32.204207968574636, 'std': 49.6655344447741}}
+
+	Test set
+
+
+	input set
+	[[1.0 0.0 0.0 ... 0.0 1.0 0.0]
+	[1.0 0.0 0.0 ... 0.0 0.0 0.0]
+	[0.0 0.0 1.0 ... 0.0 1.0 0.0]
+	...
+	[1.0 0.0 0.0 ... 0.0 0.0 0.0]
+	[1.0 0.0 0.0 ... 0.0 0.0 0.0]
+	[1.0 0.0 0.0 ... 1.0 0.0 0.0]]
+
+	features
+	{'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
+
+	input features
+	{'Pclass': 'class', 'Sex': 'class', 'Age': 'continuous', 'SibSp': 'continuous', 'Parch': 'continuous', 'Fare': 'continuous', 'Embarked': 'class'}
+
+	result features
+	{}
+
+	classDict
 	{'Survived': ['0', '1'], 'Pclass': ['3', '1', '2'], 'Sex': ['male', 'female'], 'Embarked': ['S', 'C', 'Q', '']}
 
 	norm

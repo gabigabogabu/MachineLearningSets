@@ -189,7 +189,8 @@ class MachineLearningSet(object):
 
 
 def main():
-	features = {'PassengerId': 'ignore', 
+	print('\nTraining set\n')
+	train_features = {'PassengerId': 'ignore', 
 			'Survived': 'result_class', 
 			'Pclass': 'class', 
 			'Name': 'ignore', 
@@ -202,7 +203,7 @@ def main():
 			'Cabin': 'ignore',
 			'Embarked': 'class',
 			}
-	mls = MachineLearningSet('train.csv', features)
+	mls = MachineLearningSet('train.csv', train_features)
 	print('\ninput set\n', mls.input_set)
 	# print('\nresult set\n', mls.result_set)
 	print('\nfeatures\n', mls.features)
@@ -210,6 +211,28 @@ def main():
 	print('\nresult features\n', mls.result_features)
 	print('\nclassDict\n', mls.classDict)
 	print('\nnorm\n', mls.norm)
+
+	print('\nTest set\n')
+	test_features = {'PassengerId': 'ignore', 
+			'Pclass': 'class', 
+			'Name': 'ignore', 
+			'Sex': 'class', 
+			'Age': 'continuous',
+			'SibSp': 'continuous',
+			'Parch': 'continuous',
+			'Ticket': 'ignore',
+			'Fare': 'continuous',
+			'Cabin': 'ignore',
+			'Embarked': 'class',
+			}
+	mls_test = MachineLearningSet('test.csv', test_features, mls.classDict, mls.norm)
+	print('\ninput set\n', mls_test.input_set)
+	# print('\nresult set\n', mls.result_set)
+	print('\nfeatures\n', mls_test.features)
+	print('\ninput features\n', mls_test.input_features)
+	print('\nresult features\n', mls_test.result_features)
+	print('\nclassDict\n', mls_test.classDict)
+	print('\nnorm\n', mls_test.norm)
 
 
 if __name__ == '__main__':
