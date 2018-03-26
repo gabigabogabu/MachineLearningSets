@@ -60,8 +60,8 @@ class MachineLearningSet(object):
 		rowCount = self._get_csv_rowcount(self.csvFileName)
 
 		# build np arrays
-		self.input_set = np.ndarray((rowCount, len(self.input_features)), dtype=object)
-		self.target_set = np.ndarray((rowCount, len(self.target_features)), dtype=object)
+		self.input_set = np.ndarray((rowCount, len(self.input_features)))
+		self.target_set = np.ndarray((rowCount, len(self.target_features)))
 
 		# fill array
 		with open(self.csvFileName) as csvFile:
