@@ -10,9 +10,10 @@ __license__ = "GPLv3"
 __version__ = "0.1"
 
 FEATURETYPES = ['continuous', 'class', 'ignore', 'target_continuous', 'target_class']
+NANBEHAVIOUR = ['ignore', 'delete_row']#, 'delete_column']
 
 class MachineLearningSet(object):
-	def __init__(self, csvFileName, features, classDict={}, norm={}):
+	def __init__(self, csvFileName, features, classDict={}, norm={}, nan_behaviour='ignore'):
 		"""
 		* csvFilename 
 			* CSV file in which data is stored
@@ -52,6 +53,7 @@ class MachineLearningSet(object):
 		self._construct_matrices()
 		self.input_vector_length = self.input_set.shape[1]
 		self.target_vector_length = self.target_set.shape[1]
+		self.nan_behaviour = nan_behaviour
 
 	def _construct_matrices(self):
 		"""method that constructs the numpy arrays out of the data in csv file"""
@@ -74,14 +76,14 @@ class MachineLearningSet(object):
 						continue
 					elif self.features[feature] == 'continuous':
 						# convert to float
-						c = list(self.input_features.keys()).index(feature) # index of current collumn
+						c = list(self.input_features.keys()).index(feature) # index of current column
 						if row[feature] == '':
 							# NaN if no value in that cell
 							self.input_set[r, c] = np.nan
 						else:
 							self.input_set[r, c] = float(row[feature])
 					elif self.features[feature] == 'target_continuous':
-						c = list(self.target_features.keys()).index(feature) # index of current collumn
+						c = list(self.target_features.keys()).index(feature) # index of current column
 						# convert to float
 						if row[feature] == '':
 							# NaN if no value in that cell
@@ -96,7 +98,7 @@ class MachineLearningSet(object):
 						if row[feature] not in self.classDict[feature]:
 							# add class to feature in classDict if not already seen
 							self.classDict[feature].append(row[feature])
-						c = list(self.input_features.keys()).index(feature) # index of current collumn
+						c = list(self.input_features.keys()).index(feature) # index of current column
 						self.input_set[r, c] = self.classDict[feature].index(row[feature])
 					elif self.features[feature] == 'target_class':
 						# map class to a number
@@ -106,26 +108,26 @@ class MachineLearningSet(object):
 						if row[feature] not in self.classDict[feature]:
 							# add class to feature in classDict if not already seen
 							self.classDict[feature].append(row[feature])
-						c = list(self.target_features.keys()).index(feature) # index of current collumn
+						c = list(self.target_features.keys()).index(feature) # index of current column
 						self.target_set[r, c] = self.classDict[feature].index(row[feature])
 		self._normalize()
 		self._encode_classes()
 
 	def _encode_classes(self):
 		"""Hot-Encode features that are classes"""
-		c_offset = 0 # c_offset counts how many collumns have been added in total
+		c_offset = 0 # c_offset counts how many columns have been added in total
 		for feature in self.input_features:
 			if self.input_features[feature] == 'class':
-				# c is the index of the current collumn
+				# c is the index of the current column
 				c = list(self.input_features.keys()).index(feature) + c_offset
 				# max_i is how many classes this feature has
 				classes_count = len(self.classDict[feature])
 				# hot-encode the feature
 				encoded = self._hot_encode(self.input_set[:,c].astype(int, copy=False), max_i=classes_count)
-				# encoded.shape[1] is the number of collumns in the encoded array
-				# we subtract 1 because the encoded array is going to replace the unencoded collumn
+				# encoded.shape[1] is the number of columns in the encoded array
+				# we subtract 1 because the encoded array is going to replace the unencoded column
 				c_offset += encoded.shape[1] - 1
-				# replace unencoded collumn with encoded collumns
+				# replace unencoded column with encoded columns
 				self.input_set = np.hstack([ self.input_set[:,:c], encoded, self.input_set[:,(c+1):] ])
 
 		# encode target classes, same as above but with self.target_set and self.target_features
@@ -140,10 +142,13 @@ class MachineLearningSet(object):
 
 	def _normalize(self):
 		"""Normalize features that are continuous such that the normalized features have a mean of 0 and a standard of 1"""
+		if self.nan_behaviour == 'delete_row':
+			self.input_set = input_set[ ~np.isnan(self.input_set).any(axis=1) ]
+			self.target_set = input_set[ ~np.isnan(self.target_set).any(axis=1) ]
 		for feature in self.features:
 			# normalize input featrues
 			if feature in self.input_features and self.input_features[feature] == 'continuous':
-				# c is the index of the current collumn
+				# c is the index of the current column
 				c = list(self.input_features.keys()).index(feature)
 				# add feature to norm dict if not already present
 				if feature not in self.norm.keys():
@@ -181,8 +186,8 @@ class MachineLearningSet(object):
 		v = np.zeros((len(i), max_i))
 		v[range(len(i)), i] = 1
 		# 2 classes can be represented by only one value (class and !class)
-		# so only the first collumn is used
-		# it has to be reshaped into an collumn vector to keep the "1 row = 1 example"-format
+		# so only the first column is used
+		# it has to be reshaped into an column vector to keep the "1 row = 1 example"-format
 		if max_i <= 2:
 			v = v[:,0].reshape(v.shape[0], 1)
 		return v
