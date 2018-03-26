@@ -10,7 +10,7 @@ __license__ = "GPLv3"
 __version__ = "0.1"
 
 FEATURETYPES = ['continuous', 'class', 'ignore', 'target_continuous', 'target_class']
-NANBEHAVIOUR = ['ignore', 'delete_row']#, 'delete_column']
+NANBEHAVIOUR = ['ignore', 'delete_row']#, 'delete_column', 'mean', 'median', 'mode']
 
 class MachineLearningSet(object):
 	def __init__(self, csvFileName, features, classDict={}, norm={}, nan_behaviour='ignore'):
@@ -36,6 +36,14 @@ class MachineLearningSet(object):
 			* norm is a dictionary that stores standard deviation and mean of each feature:
 				* The keys are the name of the individual features such as in the dicts above
 				* The values are dicts with 'mean' and 'std' as keys that store the mean and standard deviation of that feature
+		* nan_behaviour (optional)
+			* specifies how nan values should be handled
+				* 'ignore': (default) NaNs stay in the dataset
+				* 'delete_row': rows with NaNs in them are deleted
+				* NOT YET SUPPORTED 'delete_column': columns with NaNs are deleted
+				* NOT YET SUPPORTED 'mean': NaNs are replaced with the mean for that column
+				* NOT YET SUPPORTED 'mode': NaNs are replaced with the most occuring value in that column
+				* NOT YET SUPPORTED 'median': NaNs are replaced with the median value of that column
 
 		Note: If classDict or norm are not specified it will be calculated by this class.
 		If you are converting your first/only csv file for your ML problem you can leave it empty and the will be computed automatically.

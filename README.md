@@ -24,6 +24,14 @@ Prepares data from csv files for machine learning applications
 	* A dictionary that stores standard deviation and mean of each feature:
 		* The keys are the name of the individual features such as in the dicts above
 		* The values are dicts with `'mean'` and `'std'` as keys that store the mean and standard deviation of that feature
+* `nan_behaviour` (optional)
+			* specifies how nan values should be handled
+				* `'ignore'`: (default) NaNs stay in the dataset
+				* `'delete_row'`: rows with NaNs in them are deleted
+				* NOT YET SUPPORTED `'delete_column'`: columns with NaNs are deleted
+				* NOT YET SUPPORTED `'mean'`: NaNs are replaced with the mean for that column
+				* NOT YET SUPPORTED `'mode'`: NaNs are replaced with the most occuring value in that column
+				* NOT YET SUPPORTED `'median'`: NaNs are replaced with the median value of that column
 
 Note: If classDict or norm are not specified it will be calculated by this class.
 If you are converting your first/only csv file for your ML problem you can leave it empty and the will be computed automatically.
