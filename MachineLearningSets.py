@@ -151,8 +151,9 @@ class MachineLearningSet(object):
 	def _normalize(self):
 		"""Normalize features that are continuous such that the normalized features have a mean of 0 and a standard of 1"""
 		if self.nan_behaviour == 'delete_row':
-			self.input_set = input_set[ ~np.isnan(self.input_set).any(axis=1) ]
-			self.target_set = input_set[ ~np.isnan(self.target_set).any(axis=1) ]
+			nan_indicies = ~np.isnan(self.input_set).any(axis=1)
+			self.target_set = self.target_set[nan_indicies]
+			self.input_set = self.input_set[nan_indicies]
 		for feature in self.features:
 			# normalize input featrues
 			if feature in self.input_features and self.input_features[feature] == 'continuous':
