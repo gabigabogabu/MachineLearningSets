@@ -58,10 +58,10 @@ class MachineLearningSet(object):
 		self.norm = norm
 		self.input_set = None
 		self.target_set = None
+		self.nan_behaviour = nan_behaviour
 		self._construct_matrices()
 		self.input_vector_length = self.input_set.shape[1]
 		self.target_vector_length = self.target_set.shape[1]
-		self.nan_behaviour = nan_behaviour
 
 	def _construct_matrices(self):
 		"""method that constructs the numpy arrays out of the data in csv file"""
