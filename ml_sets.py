@@ -5,20 +5,6 @@ def shuffle_set(s):
 	"""shuffles a set"""
 	return s.sample(frac=1)
 
-def split_sets(s, fractions=[.8]):
-	"""splits a set into multiple sets
-	similar to numpy.split() but uses relative values
-	fractions is a list of fractions that describe the relative size of the new sets"""
-	all_sets = []
-	sections = []
-	for i in range(len(fractions)):
-		if len(sections) == 0:
-			sections.append(int(s.shape[0] * fractions[i]))
-		else:
-			sections.append(int(s.shape[0] * fractions[i]) + sections[-1])
-	all_sets.extend(np.split(s, sections))
-	return all_sets
-
 def fill_NaN_with_random(all_sets):
 	"""replace NaNs in a dataset with random values from the same column"""
 	nan_sum = pd.concat([s.isnull().sum() for s in all_sets], axis=1).sum(axis=1)
